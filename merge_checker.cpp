@@ -1,3 +1,4 @@
+//BZOJ-1455
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
@@ -12,13 +13,14 @@ class heap_node {
 public:
     friend class Fibheap;
     int key;
+    int id;
     int degree;
     heap_node * left;
     heap_node * right;
     heap_node * parent;
     heap_node * child;
     bool mark;
-    heap_node(const int &_key) : key(_key) {
+    heap_node(const int &_key, const int &_id) : key(_key), id(_id) {
         degree = 0;
         left = right = this;
         mark = false;
@@ -179,14 +181,17 @@ public:
     bool empty() {
         return size == 0;
     }
-    heap_node * insert(int key) {
+    heap_node * insert(int key, int id) {
         ++ size;
-        heap_node * cur = new heap_node(key);
+        heap_node * cur = new heap_node(key, id);
         insert(cur);
         return cur;
     }
     int minimum() {
         return root->key;
+    }
+    int minimum_id() {
+        return root->id;
     }
     void deleteMin() {
         removeMinNode();
@@ -238,6 +243,8 @@ int n, m;
 Fibheap a[N];
 int fa[N];
 
+bool die[N];
+
 int get(int x) {
     if (x == fa[x]) return x;
     fa[x] = get(fa[x]);
@@ -249,8 +256,9 @@ int main() {
     for (int i = 1; i <= n; i++) {
         int x;
         scanf("%d", &x);
-        a[i].insert(x);
+        a[i].insert(x, i);
         fa[i] = i;
+        die[i] = false;
     }
     scanf("%d", &m);
     for (int i = 1; i <= m; i++) {
@@ -260,6 +268,7 @@ int main() {
         if (s[0] == 'M') {
             int x, y;
             scanf("%d%d", &x, &y);
+            if (die[x] || die[y]) continue;
             int fx = get(fa[x]);
             int fy = get(fa[y]);
             if (fx == fy) continue;
@@ -268,11 +277,16 @@ int main() {
         } else {
             int x;
             scanf("%d", &x);
+            if (die[x]) {
+                puts("0");
+                continue;
+            }
             int fx = get(fa[x]);
             if (a[fx].empty()) {
                 printf("0\n");
             } else {
                 printf("%d\n", a[fx].minimum());
+                die[a[fx].minimum_id()] = true;
                 a[fx].deleteMin();
             }
         }
